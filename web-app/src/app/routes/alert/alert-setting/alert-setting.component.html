@@ -50,12 +50,13 @@
 >
   <thead>
     <tr>
-      <th nzAlign="center" nzLeft nzWidth="3%" [(nzChecked)]="checkedAll" (nzCheckedChange)="onAllChecked($event)"></th>
-      <th nzAlign="center" nzWidth="16%">{{ 'alert.setting.target' | i18n }}</th>
-      <th nzAlign="center" nzWidth="14%">{{ 'alert.setting.expr' | i18n }}</th>
-      <th nzAlign="center" nzWidth="8%">{{ 'alert.priority' | i18n }}</th>
-      <th nzAlign="center" nzWidth="8%">{{ 'alert.setting.times' | i18n }}</th>
-      <th nzAlign="center" nzWidth="20%">{{ 'alert.setting.template' | i18n }}</th>
+      <th nzAlign="center" nzLeft nzWidth="2%" [(nzChecked)]="checkedAll" (nzCheckedChange)="onAllChecked($event)"></th>
+      <th nzAlign="center" nzWidth="5%">{{ 'alert.setting.alias_tag' | i18n }}</th>
+      <th nzAlign="center" nzWidth="15%">{{ 'alert.setting.target' | i18n }}</th>
+      <th nzAlign="center" nzWidth="15%">{{ 'alert.setting.expr' | i18n }}</th>
+      <th nzAlign="center" nzWidth="5%">{{ 'alert.priority' | i18n }}</th>
+      <th nzAlign="center" nzWidth="5%">{{ 'alert.setting.times' | i18n }}</th>
+      <th nzAlign="center" nzWidth="18%">{{ 'alert.setting.template' | i18n }}</th>
       <th nzAlign="center" nzWidth="8%">{{ 'alert.setting.default' | i18n }}</th>
       <th nzAlign="center" nzWidth="8%">{{ 'alert.setting.enable' | i18n }}</th>
       <th nzAlign="center" nzWidth="15%">{{ 'common.edit' | i18n }}</th>
@@ -65,7 +66,11 @@
     <tr *ngFor="let data of fixedTable.data">
       <td nzAlign="center" nzLeft [nzChecked]="checkedDefineIds.has(data.id)" (nzCheckedChange)="onItemChecked(data.id, $event)"></td>
       <td nzAlign="center">
-        <span *ngIf="data.field"> {{ 'monitor.app.' + data.app | i18n }} / {{ data.metric + ' / ' + data.field }} </span>
+        <span>{{ data.alias_tag }}</span>
+      </td>
+      <td nzAlign="left">
+        <!--<span *ngIf="data.field"> {{ 'monitor.app.' + data.app | i18n }} / {{ data.metric + ' / ' + data.field }} </span>-->
+        <span *ngIf="data.field">{{data.app +'.'+data.metric + '.' + data.field }}</span>
         <span *ngIf="!data.field && data.metric === 'availability'">
           {{ 'monitor.app.' + data.app | i18n }} / {{ 'monitor.availability' | i18n }}
         </span>
@@ -143,7 +148,14 @@
   [nzOkLoading]="isManageModalOkLoading"
 >
   <div *nzModalContent class="-inner-content">
-    <form nz-form #defineForm="ngForm">
+    <form nz-form #defineForm="ngForm" autocomplete="off">
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="7" nzFor="alias_tag" nzRequired="true">{{ 'alert.setting.alias_tag' | i18n }}</nz-form-label>
+        <nz-form-control [nzSpan]="10" [nzErrorTip]="'validation.required' | i18n">
+          <input [(ngModel)]="define.alias_tag" nz-input required name="alias_tag" type="text" id="alias_tag" />
+        </nz-form-control>
+      </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="7" nzFor="target" nzRequired="true">{{ 'alert.setting.target' | i18n }}</nz-form-label>
         <nz-form-control [nzSpan]="10" [nzErrorTip]="'validation.required' | i18n">

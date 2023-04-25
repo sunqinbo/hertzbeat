@@ -22,9 +22,9 @@ http://maven.apache.org/ASSEMBLY/2.0.0 ">
     <id>1.3.0</id>
     <!--打包类型,可以设置多种类型,打包的时候不同的类型都会打包打出来-->
     <formats>
-        <format>tar</format>
+<!--        <format>tar</format>-->
         <format>tar.gz</format>
-        <format>zip</format>
+<!--        <format>zip</format>-->
     </formats>
     <!--第三方依赖设置-->
     <dependencySets>
@@ -43,6 +43,9 @@ http://maven.apache.org/ASSEMBLY/2.0.0 ">
             <!-- 是否进行属性替换 即使用 ${project.artifactId} -->
             <filtered>true</filtered>
             <outputDirectory>bin</outputDirectory>
+            <includes>
+                <include>*.sh</include>
+            </includes>
             <fileMode>0755</fileMode>
         </fileSet>
 
@@ -78,9 +81,9 @@ http://maven.apache.org/ASSEMBLY/2.0.0 ">
         </fileSet>
 
         <!-- 将webapp的静态资源打包到目录下-->
-        <fileSet>
+        <!--<fileSet>
             <directory>../web-app/dist</directory>
             <outputDirectory>dist</outputDirectory>
-        </fileSet>
+        </fileSet>-->
     </fileSets>
 </assembly>

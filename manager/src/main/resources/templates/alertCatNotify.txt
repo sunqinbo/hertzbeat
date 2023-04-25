@@ -1,0 +1,7 @@
+[(${title})]
+[(${targetLabel})] : [(${target})]
+[# th:if="${monitorName != null}"][(${monitorNameLabel})] : [(${monitorName})][/]
+[(${priorityLabel})] : [(${priority})]
+[(${triggerTimeLabel})] : [(${triggerTime})]
+[(${contentLabel})] : [(${content})]
+[# th:if="${expr != null}"][(${exprLabel})] : [(${expr})][/]

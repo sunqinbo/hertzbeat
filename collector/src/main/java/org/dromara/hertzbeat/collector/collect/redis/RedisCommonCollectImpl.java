@@ -73,7 +73,7 @@ public class RedisCommonCollectImpl extends AbstractCollect {
             }
         } catch (RedisConnectionException connectionException) {
             String errorMsg = CommonUtil.getMessageFromThrowable(connectionException);
-            log.info("[redis connection] error: {}", errorMsg);
+            log.warn("[redis connection] error: {}", errorMsg);
             builder.setCode(CollectRep.Code.UN_CONNECTABLE);
             builder.setMsg(errorMsg);
         } catch (Exception e) {

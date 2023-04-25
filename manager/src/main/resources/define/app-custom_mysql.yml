@@ -1,0 +1,575 @@
+category: custom
+app: custom_mysql
+name:
+  zh-CN: 东奥Mysql
+  en-US: 东奥Mysql
+params:
+  - field: host
+    name:
+      zh-CN: 主机Host
+      en-US: Host
+    type: host
+    required: true
+  - field: port
+    name:
+      zh-CN: 端口
+      en-US: Port
+    # type-字段类型,样式(大部分映射input标签type属性)
+    type: number
+    # 当type为number时,用range表示范围
+    range: '[0,65535]'
+    # required-是否是必输项 true-必填 false-可选
+    required: true
+    # default value
+    # 默认值
+    defaultValue: 3306
+  # field-变量字段标识符
+  - field: timeout
+    # name-参数字段显示名称
+    name:
+      zh-CN: 查询超时时间(ms)
+      en-US: Query Timeout(ms)
+    # type-字段类型,样式(大部分映射input标签type属性)
+    type: number
+    # required-是否是必输项 true-必填 false-可选
+    required: false
+    # 是否隐藏字段 true or false
+    hide: true
+    # 默认值
+    defaultValue: 6000
+  # field-变量字段标识符
+  - field: database
+    # name-参数字段显示名称
+    name:
+      zh-CN: 数据库名称
+      en-US: Database Name
+    # type-字段类型,样式(大部分映射input标签type属性)
+    type: text
+    # required-是否是必输项 true-必填 false-可选
+    required: false
+  # field-变量字段标识符
+  - field: username
+    # name-参数字段显示名称
+    name:
+      zh-CN: 用户名
+      en-US: Username
+    # type-字段类型,样式(大部分映射input标签type属性)
+    type: text
+    # 当type为text时,用limit表示字符串限制大小
+    limit: 50
+    # required-是否是必输项 true-必填 false-可选
+    required: true
+    # field-变量字段标识符
+  - field: password
+    # name-参数字段显示名称
+    name:
+      zh-CN: 密码
+      en-US: Password
+    # type-字段类型,样式(大部分映射input标签type属性)
+    type: password
+    # required-是否是必输项 true-必填 false-可选
+    required: true
+    # field-变量字段标识符
+  - field: url
+    # name-参数字段显示名称
+    name:
+      zh-CN: URL
+      en-US: URL
+    # type-字段类型,样式(大部分映射input标签type属性)
+    type: text
+    # required-是否是必输项 true-必填 false-可选
+    required: false
+    # 是否隐藏字段 true or false
+    hide: true
+
+# collect metrics config list
+# 采集指标组配置列表
+metrics:
+  # 通过hzb_history表的monitor_id增加一个md5字段,值为：md5(ip:port)，与外部程序写入 hzb_history_tmp表的 md5 关联；利用数据库的插入前事件机制，拷贝数据到hzb_history表
+  - name: custom
+    priority: 0
+    fields:
+      - field: bytes_sent_dt
+        type: 0
+        unit: MB
+      - field: bytes_received_dt
+        type: 0
+        unit: MB
+      - field: sql_write_dt
+        type: 0
+        unit:
+      - field: sql_read_dt
+        type: 0
+        unit:
+      - field: threads_connected
+        type: 0
+        unit:
+      - field: threads_running
+        type: 0
+        unit:
+      - field: size_data
+        type: 0
+        unit: MB
+      - field: space_free
+        type: 0
+        unit: MB
+      - field: max_connections
+        type: 0
+        unit:
+      - field: max_netflow
+        type: 0
+        unit: MB
+    calculates:
+      - bytes_sent_dt=bytes_sent_dt/1024/1024
+      - bytes_received_dt=bytes_received_dt/1024/1024
+      - size_data=size_data/1024/1024
+      - space_free=space_free/1024/1024
+    protocol: jdbc
+    jdbc:
+      platform: mysql
+      host: 10.0.6.223
+      port: 3306
+      username: root
+      password: 123456
+#      host: 10.0.75.104
+#      port: 35007
+#      username: sqb
+#      password: 123
+      database: hertzbeat
+      timeout: 100000
+      # SQL查询方式： oneRow, multiRow, columns,custom
+      queryType: custom
+      sql: select metric, dou from hzb_history where monitor_id=? and metrics='custom' ORDER BY time DESC LIMIT 0,?;
+      url:
+
+#  - name: basic
+#    # 指标组调度优先级(0->127)->(优先级高->低) 优先级低的指标组会等优先级高的指标组采集完成后才会被调度, 相同优先级的指标组会并行调度采集
+#    # 优先级为0的指标组为可用性指标组,即它会被首先调度,采集成功才会继续调度其它指标组,采集失败则中断调度
+#    priority: 0
+#    fields:
+#      # field-指标名称, type-指标类型(0-number数字,1-string字符串), unit-指标单位('%','ms','MB'), instance-是否是指标集合唯一标识符字段
+#      - field: version
+#        type: 1
+#        instance: true
+#      - field: port
+#        type: 1
+#      - field: datadir
+#        type: 1
+#      - field: max_connections
+#        type: 0
+#      - field: thread_cache_size
+#        type: 0
+#      - field: innodb_buffer_pool_size
+#        type: 0
+#        unit: KB
+#    # (非必须)监控指标别名，与上面的指标名映射。用于采集接口数据字段不直接是最终指标名称,需要此别名做映射转换
+#    aliasFields:
+#      - version
+#      - version_compile_os
+#      - version_compile_machine
+#      - port
+#      - datadir
+#      - max_connections
+#      - thread_cache_size
+#      - table_open_cache
+#      - innodb_buffer_pool_size
+#    # (非必须)指标计算表达式,与上面的别名一起作用,计算出最终需要的指标值
+#    # eg: cores=core1+core2, usage=usage, waitTime=allTime-runningTime
+#    calculates:
+#      - port=port
+#      - datadir=datadir
+#      - max_connections=max_connections
+#      - version=version+"_"+version_compile_os+"_"+version_compile_machine
+#    # 将指标的初始单位转化为最终的单位
+#    units:
+#      - innodb_buffer_pool_size=B->KB
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global variables where Variable_name like 'version%' or Variable_name = 'max_connections' or Variable_name = 'datadir' or Variable_name = 'port' or Variable_name = 'thread_cache_size' or Variable_name = 'table_open_cache' or Variable_name = 'innodb_buffer_pool_size';
+#      url: ^_^url^_^
+
+#  - name: cache
+#    # 指标组调度优先级(0->127)->(优先级高->低) 优先级低的指标组会等优先级高的指标组采集完成后才会被调度, 相同优先级的指标组会并行调度采集
+#    # 优先级为0的指标组为可用性指标组,即它会被首先调度,采集成功才会继续调度其它指标组,采集失败则中断调度
+#    priority: 1
+#    fields:
+#      - field: query_cache_hit_rate
+#        type: 0
+#        unit: '%'
+#      - field: cache_hits
+#        type: 0
+#      - field: cache_inserts
+#        type: 0
+#      - field: cache_free_blocks
+#        type: 0
+#      - field: cache_free_memory
+#        type: 0
+#        unit: KB
+#    aliasFields:
+#      # Qcache_hits 状态变量是 MySQL 的查询缓存维护状态的变量之一。它表示查询缓存匹配成功次数，与 Qcache_inserts并列计数 MySQL 查询缓存命中率
+#      # Qcache_free_blocks 数目大说明有碎片
+#      # Qcache_free_memory 缓存中的空闲内存
+#      - Qcache_hits
+#      - Qcache_inserts
+#      - Qcache_free_blocks
+#      - Qcache_free_memory
+#    calculates:
+#      - query_cache_hit_rate= (Qcache_hits + 1) / (Qcache_hits + Qcache_inserts + 1) * 100
+#      - cache_hits=Qcache_hits
+#      - cache_inserts=Qcache_inserts
+#      - cache_free_blocks=Qcache_free_blocks
+#      - cache_free_memory=Qcache_free_memory
+#    # 将指标的初始单位转化为最终的单位
+#    units:
+#      - cache_free_memory=B->KB
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status like 'QCache%';
+#      url: ^_^url^_^
+
+#  - name: performance
+#    priority: 1
+#    fields:
+#      - field: questions
+#        type: 0
+#      - field: qps
+#        type: 0
+#    aliasFields:
+#      - uptime
+#      - questions
+#    calculates:
+#      - qps=uptime / questions
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status where Variable_name = 'questions' or Variable_name = 'uptime';
+#      url: ^_^url^_^
+
+#  - name: innodb
+#    priority: 1
+#    fields:
+#      # 指标信息 包括 field名称   type字段类型:0-number数字,1-string字符串   instance是否为实例主键   unit:指标单位
+#      - field: innodb_data_reads
+#        type: 0
+#        unit: Times
+#      - field: innodb_data_writes
+#        type: 0
+#        unit: Times
+#      - field: innodb_data_read
+#        type: 0
+#        unit: KB
+#      - field: innodb_data_written
+#        type: 0
+#        unit: KB
+#      - field: innodb_buffer_hit_rate
+#        type: 0
+#        unit: '%'
+#    aliasFields:
+#      #Innodb_data_reads innodb平均每秒从文件中读取的次数
+#      #Innodb_data_writes innodb平均每秒从文件中写入的次数
+#      #Innodb_data_read innodb平均每秒钟读取的数据量，单位为KB
+#      #Innodb_data_written innodb平均每秒钟写入的数据量，单位为KB
+#      #Innodb_buffer_pool_read_requests 平均每秒从innodb缓冲池的读次数（逻辑读请求数）
+#      #Innodb_buffer_pool_reads 平均每秒从物理磁盘读取页的次数
+#      - Innodb_data_reads
+#      - Innodb_data_writes
+#      - Innodb_data_read
+#      - Innodb_data_written
+#      - Innodb_buffer_pool_read_requests
+#      - Innodb_buffer_pool_read_ahead
+#      - Innodb_buffer_pool_reads
+#    # (非必须)指标计算表达式,与上面的别名一起作用,计算出最终需要的指标值
+#    # eg: cores=core1+core2, usage=usage, waitTime=allTime-runningTime
+#    calculates:
+#      - innodb_buffer_hit_rate= (Innodb_buffer_pool_read_requests + 1) / (Innodb_buffer_pool_read_requests + Innodb_buffer_pool_read_ahead + Innodb_buffer_pool_reads + 1) * 100
+#      - innodb_data_reads=Innodb_data_reads
+#      - innodb_data_writes=Innodb_data_writes
+#      - innodb_data_read=Innodb_data_read
+#      - innodb_data_written=Innodb_data_written
+#    units:
+#      - innodb_data_read=B->KB
+#      - innodb_data_written=B->KB
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status where Variable_name like 'innodb%';
+#      url: ^_^url^_^
+
+  - name: status
+    priority: 1
+    fields:
+      - field: uptime
+        type: 0
+        unit: s
+      - field: qps
+        type: 0
+    aliasFields:
+      - uptime
+      - questions
+    calculates:
+      - qps=uptime / questions
+    protocol: jdbc
+    jdbc:
+      host: ^_^host^_^
+      port: ^_^port^_^
+      platform: mysql
+      username: ^_^username^_^
+      password: ^_^password^_^
+      database: ^_^database^_^
+      timeout: ^_^timeout^_^
+      queryType: columns
+      sql: show global status where Variable_name like 'thread%' or Variable_name = 'com_select' or Variable_name = 'com_insert' or Variable_name = 'com_update' or Variable_name = 'com_delete' or Variable_name = 'com_commit' or Variable_name = 'com_rollback' or Variable_name = 'questions' or Variable_name = 'uptime';
+      url: ^_^url^_^
+
+#  - name: handler
+#    priority: 2
+#    fields:
+#      # 指标信息 包括 field名称   type字段类型:0-number数字,1-string字符串   instance是否为实例主键   unit:指标单位
+#      # 内部提交语句数。一次 update、delete 后，handler_commit 也是添加 2。 一次 select 后，handler_commit 添加 1。
+#      - field: handler_commit
+#        type: 0
+#      # 用于跟踪发送给数据库表处理器的delete请求的次数。Handler_delete表示处理掉给表处理器发送的delete请求的次数。
+#      - field: handler_delete
+#        type: 0
+#      # 用来跟踪发送给数据库表处理器的insert请求的次数和update请求的次数，Handler_write表示处理掉给表处理器发送的inset和update请求的次数之和。
+#      - field: handler_write
+#        type: 0
+#      # 用于跟踪发送给数据库表处理器的update请求的次数。Handler_update表示处理掉给表处理器发送的update请求的次数。
+#      - field: handler_update
+#        type: 0
+#      # 是MySQL服务器用来标识Handler读取事件的计数器
+#      - field: handler_discover
+#        type: 0
+#      # 表示MySQL已经准备的SQL预处理，如果Handler_prepare的值持续上升，并且访问的表没有用到索引，则通常意味着应用程序有问题。
+#      - field: handler_prepare
+#        type: 0
+#      # 索引中第一条记录被读的次数。假设较高。它表明server正运行大量全索引扫 ; 比如，SELECT * order by id，假定 id 列有索引。
+#      - field: handler_read_first
+#        type: 0
+#      # 依据固定位置读一行的请求数。假设你正运行大量查询并须要对结果进行排序该 值较高。说明可能使用了大量须要 MySQL 扫 整个表的查询或没有正确使用索引。
+#      # 比如:select * from t limit 1000,1;
+#      # 或者:select * from t order by non_key_col limit 100,1;
+#      - field: handler_read_rnd
+#        type: 0
+#      # 通过索引读取下一条数据的次数（依照索引顺序读下一行的请求数）。假设你用范围约束或假设运行索引扫 来查询 索引列，该值添加。
+#      # 比如:select id from t where id &get;= 1024 order by id limit 5;
+#      - field: handler_read_next
+#        type: 0
+#      # 从数据节点读取下一条数据的次数，在数据文件里读下一行的请求数。假设你正进行大量的表扫 ，该值会较高。通 常说明你的表索引不对或写入的查询没有利用索引。
+#      # 比如:select * from t order by non_key_col limit 100;
+#      - field: handler_read_rnd_next
+#        type: 0
+#      # 依据索引读一行的请求数。假设较高，说明查询和表的索引正确。 比如:select … where id = 1024;
+#      - field: handler_read_key
+#        type: 0
+#      # MySQL会计用于跟踪所执行的表锁外部的操作的计数器。
+#      - field: handler_external_lock
+#        type: 0
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status like 'Handler%';
+#      url: ^_^url^_^
+
+#  - name: connection
+#    priority: 2
+#    fields:
+#      # 当前MySQL 链接数 https://blog.csdn.net/ihero/article/details/127850954
+#      - field: connections
+#        type: 0
+#      # 响应的连接数
+#      - field: max_used_connections
+#        type: 0
+#      #  表示尝试连接到mysql服务器的失败次数 https://blog.51cto.com/u_7841967/5792898
+#      - field: aborted_connects
+#        type: 0
+#      # 表示客户端没有正确的关闭连接，而被终止的连接数
+#      - field: aborted_clients
+#        type: 0
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status;
+#      url: ^_^url^_^
+
+#  - name: thread
+#    priority: 2
+#    fields:
+#      - field: threads_created
+#        type: 0
+#      - field: threads_connected
+#        type: 0
+#      - field: threads_cached
+#        type: 0
+#      - field: threads_running
+#        type: 0
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status like 'thread%';
+#      url: ^_^url^_^
+
+#  - name: tmp
+#    priority: 2
+#    fields:
+#      - field: created_tmp_tables
+#        type: 0
+#      - field: created_tmp_disk_tables
+#        type: 0
+#      - field: created_tmp_files
+#        type: 0
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status where Variable_name like '%tmp%';
+#      url: ^_^url^_^
+
+#  - name: select_type
+#    priority: 2
+#    fields:
+#      - field: select_full_join
+#        type: 0
+#      - field: select_full_range_join
+#        type: 0
+#      - field: select_range
+#        type: 0
+#      - field: select_range_check
+#        type: 0
+#      - field: select_scan
+#        type: 0
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status where Variable_name like 'select%';
+#      url: ^_^url^_^
+
+#  - name: sort
+#    priority: 2
+#    fields:
+#      - field: sort_rows
+#        type: 0
+#      - field: sort_range
+#        type: 0
+#      - field: sort_merge_passes
+#        type: 0
+#      - field: sort_scan
+#        type: 0
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status where Variable_name like 'sort%';
+#      url: ^_^url^_^
+
+#  - name: table_lock
+#    priority: 2
+#    fields:
+#      - field: table_locks_immediate
+#        type: 0
+#      - field: table_locks_waited
+#        type: 0
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: columns
+#      sql: show global status where Variable_name like 'table_lock%';
+#      url: ^_^url^_^
+#
+#  - name: process_state
+#    priority: 2
+#    fields:
+#      - field: state
+#        type: 1
+#        instance: true
+#      - field: num
+#        type: 0
+#    protocol: jdbc
+#    jdbc:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      platform: mysql
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      timeout: ^_^timeout^_^
+#      queryType: multiRow
+#      sql: select state, count(*) as num from information_schema.PROCESSLIST where state != '' group by state;
+#      url: ^_^url^_^
+

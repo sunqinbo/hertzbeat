@@ -190,6 +190,8 @@ public class CalculateAlarm {
                                     Map<String, String> tags = new HashMap<>(6);
                                     tags.put(CommonConstants.TAG_MONITOR_ID, String.valueOf(monitorId));
                                     tags.put(CommonConstants.TAG_MONITOR_APP, app);
+                                    // 警告通知中，获取配置的阈值
+                                    tags.put("expr",expr);
                                     Alert alert = Alert.builder()
                                             .tags(tags)
                                             .alertDefineId(define.getId())

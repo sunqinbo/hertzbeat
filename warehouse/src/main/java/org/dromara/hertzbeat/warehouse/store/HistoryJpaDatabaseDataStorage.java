@@ -56,7 +56,7 @@ public class HistoryJpaDatabaseDataStorage extends AbstractHistoryDataStorage {
 	private WarehouseProperties.StoreProperties.JpaProperties jpaProperties;
 
 	private static final int STRING_MAX_LENGTH = 1024;
-	private static final int MAX_HISTORY_TABLE_RECORD = 60_000;
+	private static final int MAX_HISTORY_TABLE_RECORD = 10_000_000;
 
 	public HistoryJpaDatabaseDataStorage(WarehouseProperties properties,
 	                                     HistoryDao historyDao) {
@@ -64,10 +64,10 @@ public class HistoryJpaDatabaseDataStorage extends AbstractHistoryDataStorage {
 		this.serverAvailable = true;
 		this.historyDao = historyDao;
 	}
-
-	@Scheduled(fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
+	/** 每10分10秒执行 */
+	@Scheduled(cron="10 0/10 *  * * ?")
 	public void expiredDataCleaner() {
-		log.warn("[jpa-metrics-store]-start running expired data cleaner." +
+		log.debug("[jpa-metrics-store]-start running expired data cleaner." +
 				"Please use time series db instead of jpa for better performance");
 		String expireTimeStr = jpaProperties.getExpireTime();
 		long expireTime = 0;

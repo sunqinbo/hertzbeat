@@ -4,8 +4,8 @@ export class NoticeRule {
   receiverId!: number;
   receiverName!: string;
   enable: boolean = true;
-  // 是否转发所有
-  filterAll: boolean = true;
+  // 是否转发所有,默认false
+  filterAll: boolean = false;
   // 告警级别过滤
   priorities!: number[];
   tags!: TagItem[];

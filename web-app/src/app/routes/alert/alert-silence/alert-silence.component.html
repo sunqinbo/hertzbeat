@@ -126,7 +126,7 @@
   [nzOkLoading]="isManageModalOkLoading"
 >
   <div *nzModalContent class="-inner-content">
-    <form nz-form #ruleForm="ngForm">
+    <form nz-form #ruleForm="ngForm" autocomplete="off">
       <nz-form-item>
         <nz-form-label [nzSpan]="7" nzFor="rule_name" nzRequired="true">{{ 'alert.silence.name' | i18n }}</nz-form-label>
         <nz-form-control [nzSpan]="12" [nzErrorTip]="'validation.required' | i18n">

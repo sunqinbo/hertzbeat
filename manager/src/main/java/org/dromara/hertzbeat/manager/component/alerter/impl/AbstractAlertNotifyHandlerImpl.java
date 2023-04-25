@@ -70,6 +70,9 @@ abstract class AbstractAlertNotifyHandlerImpl implements AlertNotifyHandler {
 
         context.setVariable("contentLabel", bundle.getString("alerter.notify.content"));
         context.setVariable("content", alert.getContent());
+        // 警告通知中 获取配置的 阈值表达式
+        context.setVariable("exprLabel", bundle.getString("alerter.notify.expr"));
+        context.setVariable("expr", alert.getTags() == null ? null : alert.getTags().get("expr"));
 
         return CommonUtil.removeBlankLine(templateEngine.process(templateName(), context));
     }

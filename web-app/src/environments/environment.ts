@@ -11,8 +11,8 @@ export const environment = {
   production: false,
   useHash: false,
   api: {
-    baseUrl: 'http://localhost:1157/api/',
-    refreshTokenEnabled: true
+    baseUrl: 'http://10.0.6.224:1157/api/',
+    // baseUrl: 'http://localhost:1157/api/',
   },
   modules: [DelonMockModule.forRoot({ data: MOCK_DATA })]
 } as Environment;

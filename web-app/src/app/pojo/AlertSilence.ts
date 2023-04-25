@@ -4,7 +4,7 @@ export class AlertSilence {
   id!: number;
   name!: string;
   enable: boolean = true;
-  matchAll: boolean = true;
+  matchAll: boolean = false;
   type: number = 0;
   times!: number;
   priorities!: number[];

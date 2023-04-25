@@ -1,0 +1,196 @@
+category: custom
+app: custom_mongodb
+name:
+  zh-CN: 东奥MongoDB
+  en-US: 东奥MongoDB
+params:
+  - field: host
+    name:
+      zh-CN: 主机Host
+      en-US: Host
+    type: host
+    required: true
+  - field: port
+    name:
+      zh-CN: 端口
+      en-US: Port
+    # type-字段类型,样式(大部分映射input标签type属性)
+    type: number
+    # 当type为number时,用range表示范围
+    range: '[0,65535]'
+    # required-是否是必输项 true-必填 false-可选
+    required: true
+    defaultValue: 27017
+  - field: username
+    name:
+      zh-CN: 用户名
+      en-US: Username
+    type: text
+    required: false
+    hide: true
+
+  - field: password
+    name:
+      zh-CN: 密码
+      en-US: Password
+    type: password
+    required: false
+    hide: true
+
+  - field: database
+    name:
+      zh-CN: 数据库
+      en-US: database
+    type: text
+    required: true
+    defaultValue: 'test'
+
+  - field: authenticationDatabase
+    name:
+      zh-CN: 认证数据库
+      en-US: authenticationDatabase
+    type: text
+    required: false
+    defaultValue:
+    hide: true
+
+# 可以通过执行 Diagnostic Commands 获取 mongodb 的状态信息以及一些性能、配置参数
+# https://www.mongodb.com/docs/manual/reference/command/nav-diagnostic/
+# name 必须为 Diagnostic Commands 名称，支持 . 方式获取子文档，需注意连接的用户是否具有相应命令的权限
+
+# 采集指标组配置列表
+metrics:
+  # 通过hzb_history表的monitor_id增加一个md5字段,值为：md5(ip:port)，与外部程序写入 hzb_history_tmp表的 md5 关联；利用数据库的插入前事件机制，拷贝数据到hzb_history表
+  - name: custom
+    priority: 0
+    fields:
+      - field: net_out_dt
+        type: 0
+        unit: MB
+      - field: net_in_dt
+        type: 0
+        unit: MB
+      - field: conn_current
+        type: 0
+        unit:
+      - field: com_command_dt
+        type: 0
+        unit:
+      - field: space_free
+        type: 0
+        unit: MB
+      - field: size_space
+        type: 0
+        unit: MB
+      - field: cache_used
+        type: 0
+        unit: '%'
+      - field: mem_use
+        type: 0
+        unit:
+      - field: mem_vri
+        type: 0
+        unit:
+    calculates:
+      - net_out_dt=net_out_dt/1024/1024
+      - net_in_dt=net_in_dt/1024/1024
+      - size_space=size_space/1024/1024
+      - space_free=space_free/1024/1024
+    protocol: jdbc
+    jdbc:
+      platform: mysql
+      host: 10.0.6.223
+      port: 3306
+      username: root
+      password: 123456
+#      host: 10.0.75.104
+#      port: 35007
+#      username: sqb
+#      password: 123
+      database: hertzbeat
+      timeout: 100000
+      # SQL查询方式： oneRow, multiRow, columns,custom
+      queryType: custom
+      sql: select metric, dou from hzb_history where monitor_id=? and metrics='custom' ORDER BY time DESC LIMIT 0,?;
+      url:
+
+#  # https://www.mongodb.com/docs/manual/reference/command/serverStatus/#metrics
+#  - name: server_document
+#    priority: 0
+#    fields:
+#      - field: deleted
+#        type: 0
+#      - field: inserted
+#        type: 0
+#      - field: returned
+#        type: 0
+#      - field: updated
+#        type: 0
+#    protocol: mongodb
+#    mongodb:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      authenticationDatabase: ^_^authenticationDatabase^_^
+#      command: serverStatus.metrics.document
+#
+#  - name: server_operation
+#    priority: 1
+#    fields:
+#      - field: scanAndOrder
+#        type: 0
+#      - field: writeConflicts
+#        type: 0
+#    protocol: mongodb
+#    mongodb:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      authenticationDatabase: ^_^authenticationDatabase^_^
+#      command: serverStatus.metrics.operation
+#
+#  - name: server_ttl
+#    priority: 1
+#    fields:
+#      - field: deletedDocuments
+#        type: 0
+#      - field: passes
+#        type: 0
+#    protocol: mongodb
+#    mongodb:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      authenticationDatabase: ^_^authenticationDatabase^_^
+#      command: serverStatus.metrics.ttl
+#
+#  # https://www.mongodb.com/docs/manual/reference/command/hostInfo/
+#  - name: systemInfo
+#    priority: 1
+#    fields:
+#      - field: cpuAddrSize
+#        type: 0
+#      - field: memSizeMB
+#        type: 0
+#        unit: MB
+#      - field: numCores
+#        type: 0
+#      - field: cpuArch
+#        type: 1
+#      - field: numaEnabled
+#        type: 1
+#    protocol: mongodb
+#    mongodb:
+#      host: ^_^host^_^
+#      port: ^_^port^_^
+#      username: ^_^username^_^
+#      password: ^_^password^_^
+#      database: ^_^database^_^
+#      authenticationDatabase: ^_^authenticationDatabase^_^
+#      command: hostInfo.system

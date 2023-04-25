@@ -31,10 +31,6 @@
         <maven.install.skip>true</maven.install.skip>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
-        <mysql.version>8.0.28</mysql.version>
-        <nekohtml.version>1.9.22</nekohtml.version>
-        <spring-boot-starter-sureness.version>1.0.8</spring-boot-starter-sureness.version>
-        <warehouse.version>1.0</warehouse.version>
         <easy-poi.version>4.3.0</easy-poi.version>
         <huawei.sdk.version>3.1.37</huawei.sdk.version>
     </properties>
@@ -82,7 +78,6 @@
         <dependency>
             <groupId>net.sourceforge.nekohtml</groupId>
             <artifactId>nekohtml</artifactId>
-            <version>${nekohtml.version}</version>
         </dependency>
         <!-- data jdbc -->
         <dependency>
@@ -133,6 +128,11 @@
             <groupId>cn.afterturn</groupId>
             <artifactId>easypoi-spring-boot-starter</artifactId>
             <version>${easy-poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.huaweicloud.sdk</groupId>

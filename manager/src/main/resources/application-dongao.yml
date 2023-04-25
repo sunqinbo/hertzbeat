@@ -1,0 +1,73 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+spring:
+  config:
+    activate:
+      on-profile: dongao
+  main:
+    banner-mode: off
+  #    allow-circular-references: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://10.0.75.104:35007/hertzbeat?useUnicode=true&characterEncoding=utf-8&useSSL=false
+#    username: sqb
+#    password: 123
+    url: jdbc:mysql://10.0.6.223:3306/hertzbeat?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: 123456
+    hikari:
+      max-lifetime: 120000
+
+  jpa:
+    hibernate:
+      # none  update create
+      ddl-auto: update
+    properties:
+      hibernate:
+  #          format_sql: true
+  #          show_sql: true
+  #          use_sql_comments: true
+
+  # 非必填：不使用邮箱作为警告通知可以去掉spring.mail配置
+  mail:
+    # 请注意此为邮件服务器地址：qq邮箱为 smtp.qq.com qq企业邮箱为 smtp.exmail.qq.com
+    host: mail.dongao.com
+    username: cat@dongao.com
+    # 请注意此非邮箱账户密码 此需填写邮箱授权码
+    password: dongao.com123
+    port: 465
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+          ssl:
+            enable: true
+        debug: false
+
+warehouse:
+  store:
+    # 存储历史数据方式, 下方只能enabled启用一种方式
+    jpa:
+      enabled: true
+      # 时间表达式 小时h 天D 周W 月M 例如：7D表示7天
+      expire-time: 7D
+    # 存储实时数据方式, 下方只能enabled启用一种方式
+    memory:
+      enabled: true
+      init-size: 1024
+
+alerter:
+  console-url: https://console.tancloud.cn
+  catNotifyUrl: http://10.10.250.243:8080/api/v1/weixin?group=hertzbeat

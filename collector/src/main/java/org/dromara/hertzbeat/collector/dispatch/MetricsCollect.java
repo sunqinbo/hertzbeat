@@ -245,8 +245,6 @@ public class MetricsCollect implements Runnable, Comparable<MetricsCollect> {
                                 Double doubleValue = doubleAndUnit.getValue();
                                 aliasFieldUnit = doubleAndUnit.getUnit();
                                 fieldValueMap.put(variable, doubleValue);
-                            } else {
-                                fieldValueMap.put(variable, null);
                             }
                         }
                     } else {
@@ -381,12 +379,12 @@ public class MetricsCollect implements Runnable, Comparable<MetricsCollect> {
         long runningTime = endTime - startTime;
         long allTime = endTime - newTime;
         if (startTime - newTime >= WARN_DISPATCH_TIME) {
-            log.warn("[Collector Dispatch Warn, Dispatch Use {}ms.", startTime - newTime);
+            log.debug("[Collector Dispatch Warn, Dispatch Use {}ms.", startTime - newTime);
         }
         if (builder.getCode() != CollectRep.Code.SUCCESS) {
-            log.info("[Collect Failed, Run {}ms, All {}ms] Reason: {}", runningTime, allTime, builder.getMsg());
+            log.debug("[Collect Failed, Run {}ms, All {}ms] Reason: {}", runningTime, allTime, builder.getMsg());
         } else {
-            log.info("[Collect Success, Run {}ms, All {}ms].", runningTime, allTime);
+            log.debug("[Collect Success, Run {}ms, All {}ms].", runningTime, allTime);
         }
         return builder.build();
     }

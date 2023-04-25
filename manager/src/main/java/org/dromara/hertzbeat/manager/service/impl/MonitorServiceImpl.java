@@ -17,6 +17,8 @@
 
 package org.dromara.hertzbeat.manager.service.impl;
 
+import com.usthe.sureness.util.Md5Util;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hertzbeat.alert.calculate.CalculateAlarm;
 import org.dromara.hertzbeat.alert.dao.AlertDefineBindDao;
@@ -297,7 +299,9 @@ public class MonitorServiceImpl implements MonitorService {
         if (monitor.getTags() != null) {
             monitor.setTags(monitor.getTags().stream().distinct().collect(Collectors.toList()));
         }
-
+        // todo md5(ip:port) 监控主体唯一，有区分情况1 app当
+        String md5 = Md5Util.md5(monitor.getHost()+":"+paramMap.get("port").getValue()).toLowerCase();
+        monitor.setMd5(md5);
         // Parameter definition structure verification  参数定义结构校验
         List<ParamDefine> paramDefines = appService.getAppParamDefines(monitorDto.getMonitor().getApp());
         if (paramDefines != null) {
@@ -426,7 +430,7 @@ public class MonitorServiceImpl implements MonitorService {
         // Check to determine whether the monitor corresponding to the monitor id exists
         // 查判断monitorId对应的此监控是否存在
         Optional<Monitor> queryOption = monitorDao.findById(monitorId);
-        if (queryOption.isEmpty()) {
+        if (queryOption == null) {
             throw new IllegalArgumentException("The Monitor " + monitorId + " not exists");
         }
         Monitor preMonitor = queryOption.get();

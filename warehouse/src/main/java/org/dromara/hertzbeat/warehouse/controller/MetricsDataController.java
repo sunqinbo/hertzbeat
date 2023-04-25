@@ -137,7 +137,7 @@ public class MetricsDataController {
             @PathVariable() String metricFull,
             @Parameter(description = "所属实例,默认空", example = "disk2")
             @RequestParam(required = false) String instance,
-            @Parameter(description = "查询历史时间段,默认6h-6小时:s-秒、m-分, h-小时, d-天, w-周", example = "6h")
+            @Parameter(description = "查询历史时间段,默认6h-6小时:s-秒、m-分, h-小时, D-天, W-周", example = "6h")
             @RequestParam(required = false) String history,
             @Parameter(description = "是否计算聚合数据,需查询时间段大于1周以上,默认不开启,聚合降样时间窗口默认为4小时", example = "false")
             @RequestParam(required = false) Boolean interval

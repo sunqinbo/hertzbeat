@@ -6,49 +6,50 @@
         <encoder>
             <!--<pattern>%d %p (%file:%line\)- %m%n</pattern>-->
             <!--格式化输出：%d:表示日期    %thread:表示线程名     %-5level:级别从左显示5个字符宽度  %msg:日志消息    %n:是换行符-->
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger - %msg%n</pattern>
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger - %msg%n</pattern>-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{50}).%M\(%F:%L\) %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <appender name="SystemOutFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- 归档的日志文件的路径。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
-            <fileNamePattern>logs/${application_name}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <!-- 除按日志记录之外，还配置了日志文件不能超过200M，若超过200M，日志文件会以索引0开始 -->
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>200MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
-        </rollingPolicy>
-        <!-- 追加方式记录日志 -->
-        <append>true</append>
-        <!-- 日志文件的格式 -->
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger Line:%-3L - %msg%n</pattern>
-            <charset>utf-8</charset>
-        </encoder>
-    </appender>
+    <!-- <appender name="SystemOutFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+         &lt;!&ndash; 日志记录器的滚动策略，按日期，按大小记录 &ndash;&gt;
+         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+             &lt;!&ndash; 归档的日志文件的路径。%d{yyyy-MM-dd}指定日期格式，%i指定索引 &ndash;&gt;
+             <fileNamePattern>logs/${application_name}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+             &lt;!&ndash; 除按日志记录之外，还配置了日志文件不能超过200M，若超过200M，日志文件会以索引0开始 &ndash;&gt;
+             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                 <maxFileSize>200MB</maxFileSize>
+             </timeBasedFileNamingAndTriggeringPolicy>
+         </rollingPolicy>
+         &lt;!&ndash; 追加方式记录日志 &ndash;&gt;
+         <append>true</append>
+         &lt;!&ndash; 日志文件的格式 &ndash;&gt;
+         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger Line:%-3L - %msg%n</pattern>
+             <charset>utf-8</charset>
+         </encoder>
+     </appender>
 
-    <appender name="ErrOutFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/${application_name}-%d{yyyy-MM-dd}-error.%i.log</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>200MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
-        </rollingPolicy>
-        <!-- 追加方式记录日志 -->
-        <append>true</append>
-        <!-- 日志文件的格式 -->
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger Line:%-3L - %msg%n</pattern>
-            <charset>utf-8</charset>
-        </encoder>
-        <!-- 此日志文件记录error及以上级别的 -->
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
-        </filter>
-    </appender>
+     <appender name="ErrOutFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+             <fileNamePattern>logs/${application_name}-%d{yyyy-MM-dd}-error.%i.log</fileNamePattern>
+             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                 <maxFileSize>200MB</maxFileSize>
+             </timeBasedFileNamingAndTriggeringPolicy>
+         </rollingPolicy>
+         &lt;!&ndash; 追加方式记录日志 &ndash;&gt;
+         <append>true</append>
+         &lt;!&ndash; 日志文件的格式 &ndash;&gt;
+         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger Line:%-3L - %msg%n</pattern>
+             <charset>utf-8</charset>
+         </encoder>
+         &lt;!&ndash; 此日志文件记录error及以上级别的 &ndash;&gt;
+         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+             <level>ERROR</level>
+         </filter>
+     </appender>-->
 
     <!--这个logger的设置是：举例在org.springframework包下面的所有输出日志必须级别level在info及以上级别才会被输出！-->
     <!--这样可以避免输出一些spring框架的许多常见debug信息!-->
@@ -63,33 +64,46 @@
     <logger name="com.zaxxer" level="info"/>
     <logger name="springfox" level="info"/>
     <logger name="org.mongodb" level="warn"/>
-    <logger name="io.greptime" level="warn"/>
+    <!--<logger name="com.usthe" level="debug" />-->
+    <!--<logger name="org.dromara.hertzbeat" level="debug" />-->
+    <logger name="org.dromara.hertzbeat.manager.component.alerter.impl.CatAlertNotifyHandlerImpl" level="debug" />
+    <!--<logger name="org.dromara.hertzbeat.collector.dispatch.CommonDispatcher" level="debug" />-->
+    <logger name="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" level="info" />
+    <!--    <logger name="org.hibernate.SQL" level="debug" />-->
+    <!--    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>-->
+    <!--    <logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="TRACE"/>-->
+    <!--<logger name="org.hibernate.engine.QueryParameters" level="DEBUG"/>
+    <logger name="org.hibernate.engine.query.HQLQueryPlan" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>-->
 
-    <!-- 生产环境配置 -->
-    <springProfile name="prod">
-        <root level="INFO">
-            <appender-ref ref="ConsoleAppender"/>
-            <appender-ref ref="SystemOutFileAppender"/>
-            <appender-ref ref="ErrOutFileAppender"/>
-        </root>
-    </springProfile>
+    <!--
+        &lt;!&ndash; 生产环境配置 &ndash;&gt;
+        <springProfile name="prod">
+            <root level="INFO">
+                <appender-ref ref="ConsoleAppender"/>
+                <appender-ref ref="SystemOutFileAppender"/>
+                <appender-ref ref="ErrOutFileAppender"/>
+            </root>
+        </springProfile>
 
-    <!-- 开发环境配置 -->
-    <springProfile name="dev">
-        <root level="INFO">
-            <appender-ref ref="ConsoleAppender"/>
-            <appender-ref ref="SystemOutFileAppender"/>
-            <appender-ref ref="ErrOutFileAppender"/>
-        </root>
-    </springProfile>
+        &lt;!&ndash; 开发环境配置 &ndash;&gt;
+        <springProfile name="dev">
+            <root level="INFO">
+                <appender-ref ref="ConsoleAppender"/>
+                <appender-ref ref="SystemOutFileAppender"/>
+                <appender-ref ref="ErrOutFileAppender"/>
+            </root>
+        </springProfile>
 
-    <!-- 开发环境配置 -->
-    <springProfile name="mysql">
-        <root level="INFO">
-            <appender-ref ref="ConsoleAppender"/>
-            <appender-ref ref="SystemOutFileAppender"/>
-            <appender-ref ref="ErrOutFileAppender"/>
-        </root>
-    </springProfile>
-
+        &lt;!&ndash; 开发环境配置 &ndash;&gt;
+        <springProfile name="mysql">
+            <root level="INFO">
+                <appender-ref ref="ConsoleAppender"/>
+                <appender-ref ref="SystemOutFileAppender"/>
+                <appender-ref ref="ErrOutFileAppender"/>
+            </root>
+        </springProfile>-->
+    <root level="INFO">
+        <appender-ref ref="ConsoleAppender"/>
+    </root>
 </configuration>

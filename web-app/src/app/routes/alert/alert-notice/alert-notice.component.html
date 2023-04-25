@@ -98,6 +98,10 @@
               <i nz-icon nzType="notification" nzTheme="outline"></i>
               <span>{{ 'alert.notice.type.weChatApp' | i18n }}</span>
             </nz-tag>
+            <nz-tag *ngIf="data.type == 99" nzColor="orange">
+              <i nz-icon nzType="notification" nzTheme="outline"></i>
+              <span>{{ 'alert.notice.type.cat' | i18n }}</span>
+            </nz-tag>
             <nz-tag *ngIf="data.type == 11" nzColor="orange">
               <i nz-icon nzType="notification" nzTheme="outline"></i>
               <span>{{ 'alert.notice.type.smn' | i18n }}</span>
@@ -115,6 +119,7 @@
             <span *ngIf="data.type == 8">{{ data.slackWebHookUrl }}</span>
             <span *ngIf="data.type == 9">{{ data.discordChannelId }}<br />{{ data.discordBotToken }}</span>
             <span *ngIf="data.type == 10">{{ data.corpId }}<br />{{ data.agentId }}<br />{{ data.appSecret }}</span>
+            <span *ngIf="data.type == 99" title="告警类型与微信CAT通知的映射关系：0监控通知； 1、2->Transaction通知">类型：0紧急; 1严重,2警告</span>
             <span *ngIf="data.type == 11">{{ data.smnAk }}</span>
           </td>
           <td nzAlign="center">{{ (data.gmtUpdate ? data.gmtUpdate : data.gmtCreate) | date : 'YYYY-MM-dd HH:mm:ss' }}</td>
@@ -226,17 +231,23 @@
   [nzOkLoading]="isManageReceiverModalOkLoading"
 >
   <div *nzModalContent class="-inner-content">
-    <form nz-form #receiverForm="ngForm">
+    <form nz-form #receiverForm="ngForm" autocomplete="off">
       <nz-form-item>
         <nz-form-label [nzSpan]="7" nzFor="name" nzRequired="true">{{ 'alert.notice.receiver.people.name' | i18n }}</nz-form-label>
         <nz-form-control [nzSpan]="12" [nzErrorTip]="'validation.required' | i18n">
-          <input [(ngModel)]="receiver.name" nz-input required name="name" type="text" id="name" />
+          <div *ngIf="receiver.type === 200; else elseBlock">
+            <input [(ngModel)]="receiver.name" nz-input required name="name" type="text" placeholder="多接收人用逗号分隔;如：ZhangSan,LiSi"/>
+          </div>
+          <ng-template #elseBlock>
+            <input [(ngModel)]="receiver.name" nz-input required name="name" type="text" id="name" />
+          </ng-template>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label nzSpan="7" nzRequired="true" nzFor="type">{{ 'alert.notice.receiver.type' | i18n }} </nz-form-label>
         <nz-form-control nzSpan="12" [nzErrorTip]="'validation.required' | i18n">
           <nz-select [(ngModel)]="receiver.type" nzPlaceHolder="Choose" required name="type" id="type" [nzOptionOverflowSize]="10">
+            <nz-option [nzValue]="99" [nzLabel]="'alert.notice.type.cat' | i18n"></nz-option>
             <nz-option [nzValue]="0" [nzLabel]="'alert.notice.type.sms' | i18n"></nz-option>
             <nz-option [nzValue]="1" [nzLabel]="'alert.notice.type.email' | i18n"></nz-option>
             <nz-option [nzValue]="2" nzLabel="WebHook"></nz-option>
@@ -428,7 +439,7 @@
   [nzOkLoading]="isManageRuleModalOkLoading"
 >
   <div *nzModalContent class="-inner-content">
-    <form nz-form #ruleForm="ngForm">
+    <form nz-form #ruleForm="ngForm" autocomplete="off">
       <nz-form-item>
         <nz-form-label [nzSpan]="7" nzFor="rule_name" nzRequired="true">{{ 'alert.notice.rule.name' | i18n }}</nz-form-label>
         <nz-form-control [nzSpan]="12" [nzErrorTip]="'validation.required' | i18n">

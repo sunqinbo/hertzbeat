@@ -17,6 +17,8 @@
 
 package org.dromara.hertzbeat.manager.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.dromara.hertzbeat.alert.calculate.CalculateAlarm;
 import org.dromara.hertzbeat.collector.dispatch.entrance.internal.CollectJobService;
 import org.dromara.hertzbeat.common.constants.CommonConstants;
@@ -25,14 +27,11 @@ import org.dromara.hertzbeat.common.entity.job.Job;
 import org.dromara.hertzbeat.common.entity.job.Metrics;
 import org.dromara.hertzbeat.common.entity.manager.Monitor;
 import org.dromara.hertzbeat.common.entity.manager.Param;
-import org.dromara.hertzbeat.common.util.JsonUtil;
+import org.dromara.hertzbeat.common.entity.manager.ParamDefine;
 import org.dromara.hertzbeat.manager.dao.MonitorDao;
 import org.dromara.hertzbeat.manager.dao.ParamDao;
 import org.dromara.hertzbeat.manager.pojo.dto.Hierarchy;
-import org.dromara.hertzbeat.common.entity.manager.ParamDefine;
 import org.dromara.hertzbeat.manager.service.AppService;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -263,26 +262,29 @@ public class AppServiceImpl implements AppService, CommandLineRunner {
                 .collect(Collectors.toList());
         if (!availableMonitors.isEmpty()) {
             for (Monitor monitor : availableMonitors) {
+                collectJobService.cancelAsyncCollectJob(monitor.getJobId());
+                calculateAlarm.triggeredAlertMap.remove(String.valueOf(monitor.getId()));
                 // 构造采集任务Job实体
                 Job appDefine = getAppDefine(monitor.getApp());
-                // 这里暂时是深拷贝处理
-                appDefine = JsonUtil.fromJson(JsonUtil.toJson(appDefine), Job.class);
+
                 appDefine.setMonitorId(monitor.getId());
                 appDefine.setInterval(monitor.getIntervals());
                 appDefine.setCyclic(true);
                 appDefine.setTimestamp(System.currentTimeMillis());
 
                 List<Param> params = paramDao.findParamsByMonitorId(monitor.getId());
-                List<Configmap> configmaps = params.stream().map(param -> new Configmap(param.getField(), param.getValue(), param.getType())).collect(Collectors.toList());
+                List<Configmap> configmaps = params.stream().map(param ->
+                        new Configmap(param.getField(), param.getValue(), param.getType())).collect(Collectors.toList());
                 appDefine.setConfigmap(configmaps);
                 // 下发采集任务
                 long newJobId = collectJobService.addAsyncCollectJob(appDefine);
                 monitor.setJobId(newJobId);
-                calculateAlarm.triggeredAlertMap.remove(String.valueOf(monitor.getId()));
                 monitorDao.save(monitor);
+
             }
         }
     }
+
 
     private void verifyDefineAppContent(Job app) {
         Assert.notNull(app, "define yml can not null");

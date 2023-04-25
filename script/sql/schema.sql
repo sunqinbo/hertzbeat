@@ -40,9 +40,11 @@ CREATE TABLE  hzb_monitor
      modifier     varchar(100) comment '最新修改者',
      gmt_create   timestamp    default current_timestamp comment 'create time',
      gmt_update   datetime     default current_timestamp on update current_timestamp comment 'update time',
+     `md5` varchar(32) NOT NULL COMMENT 'md5(ip:port)',
      primary key (id),
+     UNIQUE KEY `md5_unique_index` (`md5`) USING BTREE COMMENT 'md5(ip:port) 唯一索引',
      index query_index (app, host, name)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='监控实体';
 
 -- ----------------------------
 -- Table structure for param
@@ -60,7 +62,7 @@ CREATE TABLE  hzb_param
     primary key (id),
     index monitor_id (monitor_id),
     unique key unique_param (monitor_id, field)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='参数实体';
 
 -- ----------------------------
 -- Table structure for param
@@ -83,7 +85,7 @@ CREATE TABLE  hzb_param_define
     gmt_update   datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id),
     unique key unique_param_define (app, field)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='参数结构定义实体';
 
 -- ----------------------------
 -- Table structure for tag
@@ -102,7 +104,7 @@ CREATE TABLE  hzb_tag
     gmt_update   datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id),
     unique key unique_tag (name, `value`)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='标签实体';
 
 -- ----------------------------
 -- Table structure for tag_monitor_bind
@@ -117,7 +119,7 @@ CREATE TABLE  hzb_tag_monitor_bind
     gmt_update   datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id),
     index index_tag_monitor (tag_id, monitor_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='标签与监控关联实体';
 
 -- ----------------------------
 -- Table structure for alert_define
@@ -126,6 +128,7 @@ DROP TABLE IF EXISTS  hzb_alert_define ;
 CREATE TABLE  hzb_alert_define
 (
     id           bigint           not null auto_increment comment '告警定义ID',
+    alias_tag        varchar(100)      not null comment '所属组',
     app          varchar(100)     not null comment '配置告警的监控类型:linux,mysql,jvm...',
     metric       varchar(100)     not null comment '配置告警的指标集合:cpu,memory,info...',
     field        varchar(100)     comment '配置告警的指标:usage,cores...',
@@ -140,7 +143,7 @@ CREATE TABLE  hzb_alert_define
     gmt_create   timestamp        default current_timestamp comment 'create time',
     gmt_update   datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='告警定义实体';
 
 -- ----------------------------
 -- Table structure for alert_define_monitor_bind
@@ -155,7 +158,7 @@ CREATE TABLE  hzb_alert_define_monitor_bind
     gmt_update       datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id),
     index index_bind (alert_define_id, monitor_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='告警定义与监控关联实体';
 
 -- ----------------------------
 -- Table structure for hzb_alert_silence
@@ -179,7 +182,7 @@ CREATE TABLE  hzb_alert_silence
     gmt_create     timestamp        default current_timestamp comment 'create time',
     gmt_update     datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='告警静默策略实体';
 
 -- ----------------------------
 -- Table structure for alert
@@ -203,7 +206,7 @@ CREATE TABLE  hzb_alert
     gmt_create           timestamp        default current_timestamp comment 'create time',
     gmt_update           datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='告警记录实体';
 
 -- ----------------------------
 -- Table structure for notice_rule
@@ -227,7 +230,7 @@ CREATE TABLE  hzb_notice_rule
     gmt_create     timestamp        default current_timestamp comment 'create time',
     gmt_update     datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='通知策略实体';
 
 -- ----------------------------
 -- Table structure for notice_receiver
@@ -256,7 +259,7 @@ CREATE TABLE  hzb_notice_receiver
     gmt_create   timestamp        default current_timestamp comment 'create time',
     gmt_update   datetime         default current_timestamp on update current_timestamp comment 'update time',
     primary key (id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='消息通知接收人实体';
 
 -- ----------------------------
 -- Table structure for hzb_history
@@ -275,6 +278,58 @@ CREATE TABLE  hzb_history
     dou            float            comment '数值',
     time           bigint           comment '采集时间戳',
     primary key (id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 comment='历史表';
+
+
+DROP TABLE IF EXISTS hzb_history;
+CREATE TABLE `hzb_history` (
+   `id` bigint(20) NOT NULL AUTO_INCREMENT,
+   `app` varchar(20) DEFAULT NULL COMMENT '监控类型：mysql redis mongodb',
+   `dou` double DEFAULT NULL COMMENT '数值',
+   `instance` varchar(100) DEFAULT NULL COMMENT '实例',
+   `metric` varchar(100) DEFAULT NULL COMMENT '指标名称 usage speed count',
+   `metric_type` tinyint(4) DEFAULT NULL COMMENT '字段类型：0：数值 1：字符值',
+   `metrics` varchar(100) DEFAULT NULL COMMENT '指标集合名 disk cpu memory',
+   `monitor_id` bigint(20) DEFAULT NULL COMMENT '监控ID',
+   `str` varchar(100) DEFAULT NULL COMMENT '字符值',
+   `time` bigint(20) DEFAULT NULL COMMENT '采集时间戳',
+   PRIMARY KEY (`id`),
+   KEY `history_query_index` (`monitor_id`,`app`,`metrics`,`metric`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='监控指标历史表';
+
+DROP TABLE IF EXISTS hzb_history_tmp;
+CREATE TABLE `hzb_history_tmp` (
+   `id` bigint(20) NOT NULL AUTO_INCREMENT,
+   `app` varchar(20) DEFAULT NULL COMMENT '监控类型：mysql redis mongodb',
+   `dou` double DEFAULT NULL COMMENT '数值',
+   `instance` varchar(100) DEFAULT NULL COMMENT '实例',
+   `metric` varchar(100) DEFAULT NULL COMMENT '指标名称 usage speed count',
+   `metric_type` tinyint(4) DEFAULT NULL COMMENT '字段类型：0：数值 1：字符值',
+   `metrics` varchar(100) DEFAULT NULL COMMENT '指标集合名 disk cpu memory',
+   `monitor_id` varchar(32) DEFAULT NULL COMMENT '监控ID md5(ip:port)',
+   `str` varchar(100) DEFAULT NULL COMMENT '字符值',
+   `time` bigint(20) DEFAULT NULL COMMENT '采集时间戳',
+   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='临时表，用于同步自定数据到hzb_history';
+
+
+
+DROP TRIGGER IF EXISTS insert_trigger;
+CREATE TRIGGER insert_trigger BEFORE INSERT ON hzb_history_tmp FOR EACH ROW
+BEGIN
+    -- 从临时表拷贝数据到hzb_history 监控指标历史表
+    INSERT INTO hzb_history(`app`, `dou`, `metric`, `metric_type`, `metrics`, `monitor_id`, `time`) VALUES
+        ( NEW.app, NEW.dou, NEW.metric, NEW.metric_type,NEW.metrics, (SELECT id FROM hzb_monitor WHERE md5 = NEW.monitor_id), NEW.time);
+    -- (SELECT id FROM hzb_monitor WHERE md5 = NEW.monitor_id)
+-- hzb_monitor表 有一列名为md5，加上增加192.168.2.2 端口为3306 ，md5列值为：md5("192.168.2.2:3306")
+-- hzb_history_tmp 表的的 monitor_id实际是  md5("192.168.2.2:3306")
+END;
+
+--  定时任务 清空hzb_history_tmp数据
+DROP EVENT IF EXISTS clear_hzb_history_tmp_event;
+CREATE EVENT clear_hzb_history_tmp_event
+ON SCHEDULE EVERY 1 SECOND
+ON COMPLETION PRESERVE
+DO TRUNCATE hzb_history_tmp;
 
 COMMIT;

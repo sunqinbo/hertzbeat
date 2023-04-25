@@ -18,6 +18,7 @@
 package org.dromara.hertzbeat.collector.collect.database;
 
 import com.mysql.cj.jdbc.exceptions.CommunicationsException;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.hertzbeat.collector.collect.AbstractCollect;
 import org.dromara.hertzbeat.collector.collect.common.cache.CacheIdentifier;
 import org.dromara.hertzbeat.collector.collect.common.cache.CommonCache;
@@ -25,23 +26,15 @@ import org.dromara.hertzbeat.collector.collect.common.cache.JdbcConnect;
 import org.dromara.hertzbeat.collector.dispatch.DispatchConstants;
 import org.dromara.hertzbeat.collector.util.CollectUtil;
 import org.dromara.hertzbeat.common.constants.CollectorConstants;
+import org.dromara.hertzbeat.common.constants.CommonConstants;
 import org.dromara.hertzbeat.common.entity.job.Metrics;
 import org.dromara.hertzbeat.common.entity.job.protocol.JdbcProtocol;
 import org.dromara.hertzbeat.common.entity.message.CollectRep;
-import org.dromara.hertzbeat.common.constants.CommonConstants;
 import org.dromara.hertzbeat.common.util.CommonUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.postgresql.util.PSQLException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.sql.*;
+import java.util.*;
 
 /**
  * 数据库JDBC通用查询
@@ -54,6 +47,7 @@ public class JdbcCommonCollect extends AbstractCollect {
     private static final String QUERY_TYPE_ONE_ROW = "oneRow";
     private static final String QUERY_TYPE_MULTI_ROW = "multiRow";
     private static final String QUERY_TYPE_COLUMNS = "columns";
+    private static final String CUSTOM_QUERY_TYPE = "custom";
 
     public JdbcCommonCollect(){}
 
@@ -83,6 +77,10 @@ public class JdbcCommonCollect extends AbstractCollect {
                     break;
                 case QUERY_TYPE_COLUMNS:
                     queryOneRowByMatchTwoColumns(statement, jdbcProtocol.getSql(), metrics.getAliasFields(), builder, startTime);
+                    break;
+                case CUSTOM_QUERY_TYPE:
+                    PreparedStatement preparedStatement = getPreparedStatement(jdbcProtocol.getUsername(), jdbcProtocol.getPassword(), databaseUrl, timeout, jdbcProtocol.getSql());
+                    queryMultiRowTypeCustom(preparedStatement, metrics.getAliasFields(), builder, startTime, appId);
                     break;
                 default:
                     builder.setCode(CollectRep.Code.FAIL);
@@ -325,5 +323,96 @@ public class JdbcCommonCollect extends AbstractCollect {
 
         }
         return url;
+    }
+
+    private PreparedStatement getPreparedStatement(String username, String password, String url, Integer timeout, String sql) throws Exception {
+        int maxRows = 100;
+        CacheIdentifier identifier = CacheIdentifier.builder()
+                .ip(url)
+                .username(username).password(password).build();
+        Optional<Object> cacheOption = CommonCache.getInstance().getCache(identifier, true);
+        PreparedStatement preparedStatement = null;
+        if (cacheOption.isPresent()) {
+            JdbcConnect jdbcConnect = (JdbcConnect) cacheOption.get();
+            try {
+                preparedStatement = jdbcConnect.getConnection().prepareStatement(sql);
+                // 设置查询超时时间10秒
+                int timeoutSecond = timeout / 1000;
+                timeoutSecond = timeoutSecond <= 0 ? 1 : timeoutSecond;
+                preparedStatement.setQueryTimeout(timeoutSecond);
+                // 设置查询最大行数100行
+                preparedStatement.setMaxRows(maxRows);
+            } catch (Exception e) {
+                log.warn("The jdbc connect from cache, create statement error: {}", e.getMessage());
+                try {
+                    if (preparedStatement != null) {
+                        preparedStatement.close();
+                    }
+                    jdbcConnect.close();
+                } catch (Exception e2) {
+                    log.error(e2.getMessage(), e);
+                }
+                preparedStatement = null;
+                CommonCache.getInstance().removeCache(identifier);
+            }
+        }
+        if (preparedStatement != null) {
+            return preparedStatement;
+        }
+        // 复用失败则新建连接
+        Connection connection = DriverManager.getConnection(url, username, password);
+        preparedStatement = connection.prepareStatement(sql);
+        // 设置查询超时时间10秒
+        int timeoutSecond = timeout / 1000;
+        timeoutSecond = timeoutSecond <= 0 ? 1 : timeoutSecond;
+        preparedStatement.setQueryTimeout(timeoutSecond);
+        // 设置查询最大行数100行
+        preparedStatement.setMaxRows(maxRows);
+        JdbcConnect jdbcConnect = new JdbcConnect(connection);
+        CommonCache.getInstance().addCache(identifier, jdbcConnect);
+        return preparedStatement;
+    }
+
+    /**
+     * 查询多行数据, 通过查询返回结果集的列名称，和查询的字段映射
+     * eg:
+     * 查询字段：one tow three four
+     * 查询SQL：select one, tow, three, four from book;
+     * @param preparedStatement 预编译执行器
+     * @param columns 查询的列头(一般是数据库表字段，也可能包含特殊字段,eg: responseTime)
+     * @param appId 对应 hzb_monitor 表的 monitor_id
+     * @throws Exception when error happen
+     */
+    private void queryMultiRowTypeCustom(PreparedStatement preparedStatement, List<String> columns, CollectRep.MetricsData.Builder builder, long startTime, long appId) throws Exception {
+        // 查询指标值不存在，设置为0. 表示外部数据并没同步到hzb_history_tmp表
+        String zeroValue = "0";
+        preparedStatement.setLong(1, appId);
+        preparedStatement.setLong(2, columns.size());
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        try {
+            Map<String, String> values = new HashMap<>(columns.size());
+            while (resultSet.next()) {
+                String columnName = resultSet.getString(1).toLowerCase().trim();
+                String dou = resultSet.getString(2);
+                values.put(columnName, dou);
+            }
+            CollectRep.ValueRow.Builder valueRowBuilder = CollectRep.ValueRow.newBuilder();
+            for (String column : columns) {
+                if (CollectorConstants.RESPONSE_TIME.equals(column)) {
+                    long time = System.currentTimeMillis() - startTime;
+                    valueRowBuilder.addColumns(String.valueOf(time));
+                } else {
+                    String value = values.get(column.toLowerCase());
+                    value = value == null ? zeroValue : value;
+                    valueRowBuilder.addColumns(value);
+                }
+            }
+            builder.addValues(valueRowBuilder.build());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            resultSet.close();
+        }
     }
 }

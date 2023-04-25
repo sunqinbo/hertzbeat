@@ -30,11 +30,11 @@ public class AvailableAlertDefineInit implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		Set<String> apps = appService.getAllAppDefines().keySet();
+		/*Set<String> apps = appService.getAllAppDefines().keySet();
 		for (String app : apps) {
 			try {
 				Optional<AlertDefine> optional = alertDefineDao.queryAlertDefineByAppAndMetricAndField(app, CommonConstants.AVAILABILITY, null);
-				if (optional.isEmpty()) {
+				if (optional != null) {
 					AlertDefine alertDefine = AlertDefine.builder()
 							.app(app)
 							.metric(CommonConstants.AVAILABILITY)
@@ -49,6 +49,6 @@ public class AvailableAlertDefineInit implements CommandLineRunner {
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
-		}
+		}*/
 	}
 }

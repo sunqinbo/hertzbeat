@@ -138,15 +138,19 @@ public class MongodbSingleCollectImpl extends AbstractCollect {
      */
     private void fillBuilder(Metrics metrics, CollectRep.ValueRow.Builder valueRowBuilder, Document document) {
         metrics.getAliasFields().forEach(it -> {
-            if (document.containsKey(it)) {
-                Object fieldValue =document.get(it);
-                if (fieldValue == null) {
-                    valueRowBuilder.addColumns(CommonConstants.NULL_VALUE);
+            try {
+                if (document != null && document.containsKey(it)) {
+                    Object fieldValue = document.get(it);
+                    if (fieldValue == null) {
+                        valueRowBuilder.addColumns(CommonConstants.NULL_VALUE);
+                    } else {
+                        valueRowBuilder.addColumns(fieldValue.toString());
+                    }
                 } else {
-                    valueRowBuilder.addColumns(fieldValue.toString());
+                    valueRowBuilder.addColumns(CommonConstants.NULL_VALUE);
                 }
-            } else {
-                valueRowBuilder.addColumns(CommonConstants.NULL_VALUE);
+            } catch (Exception e) {
+                // ignore
             }
         });
     }
@@ -162,8 +166,8 @@ public class MongodbSingleCollectImpl extends AbstractCollect {
         Assert.hasText(mongodbProtocol.getCommand(), "Mongodb Protocol command is required.");
         Assert.hasText(mongodbProtocol.getHost(), "Mongodb Protocol host is required.");
         Assert.hasText(mongodbProtocol.getPort(), "Mongodb Protocol port is required.");
-        Assert.hasText(mongodbProtocol.getUsername(), "Mongodb Protocol username is required.");
-        Assert.hasText(mongodbProtocol.getPassword(), "Mongodb Protocol password is required.");
+        /*Assert.hasText(mongodbProtocol.getUsername(), "Mongodb Protocol username is required.");
+        Assert.hasText(mongodbProtocol.getPassword(), "Mongodb Protocol password is required.");*/
     }
 
     /**
@@ -173,8 +177,8 @@ public class MongodbSingleCollectImpl extends AbstractCollect {
         MongodbProtocol mongodbProtocol = metrics.getMongodb();
         // try to reuse connection
         CacheIdentifier identifier = CacheIdentifier.builder()
-                .ip(mongodbProtocol.getHost()).port(mongodbProtocol.getPort())
-                .username(mongodbProtocol.getUsername()).password(mongodbProtocol.getPassword()).build();
+                .ip(mongodbProtocol.getHost()).port(mongodbProtocol.getPort()).build();
+
         Optional<Object> cacheOption = CommonCache.getInstance().getCache(identifier, true);
         MongoClient mongoClient = null;
         if (cacheOption.isPresent()) {
@@ -201,9 +205,23 @@ public class MongodbSingleCollectImpl extends AbstractCollect {
         String url;
         try {
             // 密码可能包含特殊字符，需要使用类似js的encodeURIComponent进行编码，这里使用java的URLEncoder
-            url = String.format("mongodb://%s:%s@%s:%s/%s?authSource=%s", mongodbProtocol.getUsername(),
-                    URLEncoder.encode(mongodbProtocol.getPassword(), "UTF-8"), mongodbProtocol.getHost(), mongodbProtocol.getPort(),
-                    mongodbProtocol.getDatabase(), mongodbProtocol.getAuthenticationDatabase());
+            if ((null == mongodbProtocol.getUsername() || "".equals(mongodbProtocol.getUsername()))
+                    && (null == mongodbProtocol.getPassword() || "".equals(mongodbProtocol.getPassword()))
+                    && (null == mongodbProtocol.getDatabase() || "".equals(mongodbProtocol.getDatabase()))
+                    && (null == mongodbProtocol.getAuthenticationDatabase() || "".equals(mongodbProtocol.getAuthenticationDatabase()))
+            ) {
+                url = String.format("mongodb://%s:%s", mongodbProtocol.getHost(), mongodbProtocol.getPort());
+            } else if ((null == mongodbProtocol.getUsername() || "".equals(mongodbProtocol.getUsername()))
+                    && (null == mongodbProtocol.getPassword() || "".equals(mongodbProtocol.getPassword()))
+                    && (null != mongodbProtocol.getDatabase() || !"".equals(mongodbProtocol.getDatabase()))
+            ) {
+                url = String.format("mongodb://%s:%s/%s", mongodbProtocol.getHost(), mongodbProtocol.getPort(), mongodbProtocol.getDatabase());
+            } else {
+                url = String.format("mongodb://%s:%s@%s:%s/%s?authSource=%s", mongodbProtocol.getUsername(),
+                        URLEncoder.encode(mongodbProtocol.getPassword(), "UTF-8"), mongodbProtocol.getHost(), mongodbProtocol.getPort(),
+                        mongodbProtocol.getDatabase(), mongodbProtocol.getAuthenticationDatabase());
+            }
+
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
